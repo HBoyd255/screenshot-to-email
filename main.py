@@ -1,23 +1,55 @@
 from PIL import ImageGrab
+import json
+from email.message import EmailMessage
+import smtplib
+import os
 
-# Capture the entire screen
+SHOW_MESSAGE_BOX = False
+
+# Capture and save a screenshot
 screenshot = ImageGrab.grab()
-
-# Save the screenshot to a file
 screenshot.save("screenshot.png")
-
-# Close the screenshot
 screenshot.close()
 
-from todoist_api_python.api import TodoistAPI
-from modules.file_utils import text_file_to_string, save_object, load_object
+# Load the email credentials from a secrets file
+with open("secrets/email_creds.json", "r") as f:
+    secrets = json.load(f)
 
-API_TEXT_FILE = "secrets/api_key.txt"
-API_KEY = text_file_to_string(API_TEXT_FILE)
-api = TodoistAPI(API_KEY)
+    sender = secrets["sender"]
+    password = secrets["password"]
+    receiver = secrets["receiver"]
+    smtp_server = secrets["smtp_server"]
+    smtp_port = secrets["smtp_port"]
 
-try:
-    task = api.add_task(content="Buy Milk", project_id="2203306141")
-    print(task)
-except Exception as error:
-    print(error)
+# Construct the email
+email = EmailMessage()
+email["Subject"] = "Test email"
+email["From"] = sender
+email["To"] = receiver
+
+# Attach the screenshot
+with open("screenshot.png", "rb") as f:
+    content = f.read()
+    email.add_attachment(
+        content,
+        maintype="application",
+        subtype="png",
+        filename="Screenshot.png",
+    )
+
+# Send the email
+with smtplib.SMTP(smtp_server, smtp_port) as smtp:
+    smtp.starttls()
+    smtp.login(sender, password)
+    smtp.send_message(email)
+
+# Delete the screenshot
+os.remove("screenshot.png")
+
+# Print a success message
+print("Email sent successfully!")
+
+
+if SHOW_MESSAGE_BOX:
+    import win32ui
+    win32ui.MessageBox("Sent", "Message Sent Successfully!")
