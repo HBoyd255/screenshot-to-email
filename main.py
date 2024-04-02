@@ -4,7 +4,7 @@ from email.message import EmailMessage
 import smtplib
 import os
 
-SHOW_MESSAGE_BOX = False
+SHOW_MESSAGE_BOX = True
 
 # Capture and save a screenshot
 screenshot = ImageGrab.grab()
@@ -23,7 +23,7 @@ with open("secrets/email_creds.json", "r") as f:
 
 # Construct the email
 email = EmailMessage()
-email["Subject"] = "Test email"
+email["Subject"] = "Screenshot"
 email["From"] = sender
 email["To"] = receiver
 
@@ -52,4 +52,5 @@ print("Email sent successfully!")
 
 if SHOW_MESSAGE_BOX:
     import win32ui
-    win32ui.MessageBox("Sent", "Message Sent Successfully!")
+
+    win32ui.MessageBox("Message Sent Successfully!", "Sent!")
